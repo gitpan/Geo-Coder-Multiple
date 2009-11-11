@@ -1,0 +1,10 @@
+Changes
+README
+MANIFEST
+Makefile.PL
+lib/Geo/Coder/Multiple.pm
+lib/Geo/Coder/Multiple/Bing.pm
+lib/Geo/Coder/Multiple/Google.pm
+lib/Geo/Coder/Multiple/Multimap.pm
+lib/Geo/Coder/Multiple/Yahoo.pm
+META.yml                                 Module meta-data (added by MakeMaker)
