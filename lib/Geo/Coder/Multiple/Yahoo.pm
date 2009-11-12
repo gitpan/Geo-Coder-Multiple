@@ -3,20 +3,7 @@ package Geo::Coder::Multiple::Yahoo;
 use strict;
 use warnings;
 
-
-sub new {
-    my $class = shift;
-    my $args = shift;
-
-    my $self = {
-        GeoCoder    => $args->{geocoder},
-        daily_limit => $args->{daily_limit},
-    };
-
-    bless $self, $class;
-
-    return( $self );
-};
+use base 'Geo::Coder::Multiple::Generic';
 
 
 sub geocode {
@@ -24,6 +11,8 @@ sub geocode {
     my $location = shift;
 
     my $raw_replies = $self->{GeoCoder}->geocode( location => $location );
+
+    my $Response = Geo::Coder::Multiple::Response->new( { location => $location } );
 
     my $location_data = [];
 
@@ -33,21 +22,17 @@ sub geocode {
             country     => $raw_reply->{country},
             longitude   => $raw_reply->{longitude},
             latitude    => $raw_reply->{latitude},
-            geocoder    => 'yahoo',
         };
 
-        push @{$location_data}, $tmp;
+        $Response->add_response( $tmp, 'yahoo' );
     };
 
-    return( $location_data );
+    return( $Response );
 };
 
-
-sub get_daily_limit { return( $_[0]->{daily_limit} ) };
-sub get_name { return( $_[0]->{name} ) };
 
 
 1;
 
-__END__
 
+__END__

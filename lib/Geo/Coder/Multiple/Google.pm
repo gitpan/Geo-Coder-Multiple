@@ -3,20 +3,7 @@ package Geo::Coder::Multiple::Google;
 use strict;
 use warnings;
 
-
-sub new {
-    my $class = shift;
-    my $args = shift;
-
-    my $self = {
-        GeoCoder    => $args->{geocoder},
-        daily_limit => $args->{daily_limit},
-    };
-
-    bless $self, $class;
-
-    return( $self );
-};
+use base 'Geo::Coder::Multiple::Generic';
 
 
 sub geocode {
@@ -25,7 +12,7 @@ sub geocode {
 
     my @raw_replies = $self->{GeoCoder}->geocode( $location );
 
-    my $location_data = [];
+    my $Response = Geo::Coder::Multiple::Response->new( { location => $location } );
 
     foreach my $raw_reply ( @raw_replies ) {
         my $tmp = {
@@ -33,17 +20,13 @@ sub geocode {
             country     => $raw_reply->{AddressDetails}->{Country}->{CountryNameCode},
             latitude    => $raw_reply->{Point}->{coordinates}->[1],
             longitude   => $raw_reply->{Point}->{coordinates}->[0],
-            geocoder    => 'google',
         };
 
-        push @{$location_data}, $tmp;
+        $Response->add_response( $tmp, 'google' );
     };
 
-    return( $location_data );
+    return( $Response );
 };
-
-sub get_daily_limit { return( $_[0]->{daily_limit} ) };
-sub get_name { return( $_[0]->{name} ) };
 
 
 1;

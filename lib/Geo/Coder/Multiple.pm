@@ -1,11 +1,11 @@
 package Geo::Coder::Multiple;
 
-$VERSION = 0.2;
+$VERSION = 0.3;
 
 use strict;
 use warnings;
 
-use Geo::Coder::Multiple::Weighted;
+use List::Util::WeightedRoundRobin;
 
 use Geo::Coder::Multiple::Bing;
 use Geo::Coder::Multiple::Google;
@@ -18,15 +18,15 @@ sub new {
     my $args = shift;
 
     my $self = {
-        ResultsCache    => undef,
-        StatsCache      => undef,
+        cache           => undef,
+        cache_enabled   => 0,
         geocoders       => {},
         weighted_list   => [],
     };
 
     bless $self, $class;
 
-    $self->_set_cache_objects( $args );
+    $self->_set_caching_object( $args->{cache} );
 
     return( $self );
 };
@@ -60,27 +60,31 @@ sub geocode {
     my $self = shift;
     my $args = shift;
 
-    my $location_data = [];
+    my $Response = $self->_get_cache( $args->{location} );
+
+    if( defined($Response) ) {
+        return( $Response );
+    };
 
     my $geocoders_count = @{$self->_get_geocoders()};
     my $previous_geocoder;
 
-    while( (@{$location_data} < 1) && ($geocoders_count > 0) ) {
+    while( (!defined($Response) || $Response->get_response_code != 200) && ($geocoders_count > 0) ) {
         my $geocoder = $self->_get_next_geocoder();
         next if( defined($previous_geocoder)
             && ref($geocoder) eq ref($previous_geocoder) );
-print "Trying ". ref($geocoder) ." $geocoders_count\n";
-        $location_data = $geocoder->geocode( $args->{location} );
+        $Response = $geocoder->geocode( $args->{location} );
         $previous_geocoder = $geocoder;
         $geocoders_count--;
     };
 
-    unless( @{$location_data} ) { return; };
+    $self->_set_cache( $args->{location}, $Response );
 
-print "Found\n";
-
-    wantarray ? @{$location_data} : $location_data->[0];
+    return( $Response );
 };
+
+
+sub is_cache_enabled { return( $_[0]->{cache_enabled} ) };
 
 
 sub _get_geocoders { 
@@ -122,7 +126,7 @@ sub _recalculate_geocoder_stats {
         push @{$slim_geocoders}, $tmp;
     };
 
-    my $WeightedList = Geo::Coder::Multiple::Weighted->new();
+    my $WeightedList = List::Util::WeightedRoundRobin->new();
     $WeightedList->initialize_sources( $slim_geocoders );
     $self->{weighted_list} = $WeightedList->get_list();
 
@@ -144,15 +148,13 @@ sub _cleanse_address {
 
 # Set the list of cache objects
 #
-sub _set_cache_objects {
+sub _set_caching_object {
     my $self = shift;
-    my $args = shift;
+    my $cache_obj = shift;
 
-    foreach my $cache_name ( keys %{$args} ) {
-        my $cache_obj = $args->{$cache_name};
-        $self->_test_cache( $cache_obj );
-        $self->{$cache_name} = $cache_obj;
-    };
+    $self->_test_cache_object( $cache_obj );
+    $self->{cache} = $cache_obj;
+    $self->{cache_enabled} = 1;
 
     return;
 };
@@ -160,33 +162,54 @@ sub _set_cache_objects {
 
 # Test the cache to ensure it has 'get', 'set' and 'remove' methods
 #
-sub _cache_test {
+sub _test_cache_object {
     my $self = shift;
     my $cache_object = shift;
 
     # Test to ensure the cache works
     eval {
-        $cache_object->set( 'test', 1 );
-        $cache_object->get( 'test' );
-        $cache_object->remove( 'test' );
+        $cache_object->set( '1234', 'test' );
+        die unless( $cache_object->get('1234') eq 'test' );
     };
 
     if( $@ ) { 
-        warn "Unable to use user provided cache object: ref($cache_object) ($@)";
-        die;
+        die "Unable to use user provided cache object: ". ref($cache_object);
     };
 
     return;
 };
 
 
-# Store the result in the cache (if defined) and update the stats
-# on the geocoder requests.
-sub _cache_result {
+# Store the result in the cache
+sub _set_cache {
     my $self = shift;
+    my $location = shift;
+    my $Response = shift;
 
+    if( $self->is_cache_enabled() ) {
+        $self->{cache}->set( $location, $Response );
+        return( 1 );
+    };
+
+    return( 0 );
 };
 
+
+# Check the cache to see if the data is available
+sub _get_cache {
+    my $self = shift;
+    my $location = shift;
+
+    if( $self->is_cache_enabled() ) {
+        my $Response = $self->{cache}->get( $location );
+        if( $Response ) {
+            $Response->{response_code} = 210;
+            return( $Response );
+        };
+    };
+
+    return;
+};
 
 
 1;
@@ -328,6 +351,7 @@ A matching address will have the following keys in the hash reference.
   address               matched address
   latitude              latitude of matched address
   longitude             longitude of matched address
+  country               country of matched address (not available for all geocoders)
   geocoder              source used to lookup address
 
 The C<geocoder> key will contain a string denoting which geocoder returned the
@@ -336,7 +360,8 @@ results (eg, 'jingle').
 The C<response_code> key will contain the response code. The possible values
 are:
 
-  200   Success
+  200   Success 
+  210   Success (from cache)
   401   Unable to find location
   402   All geocoder limits reached (not yet implemented)
 
@@ -386,3 +411,4 @@ it under the same terms as Perl itself, either Perl version 5.10 or,
 at your option, any later version of Perl 5 you may have available.
 
 =cut
+

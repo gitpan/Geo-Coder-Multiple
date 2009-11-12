@@ -18,6 +18,7 @@ DEPENDENCIES
 This module requires these other modules and libraries:
  
   Geo::Coder::* (as required)
+  List::Util::WeightedRoundRobin
  
 COPYRIGHT AND LICENCE
  

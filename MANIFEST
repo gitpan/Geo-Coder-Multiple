@@ -7,5 +7,5 @@ lib/Geo/Coder/Multiple/Bing.pm
 lib/Geo/Coder/Multiple/Google.pm
 lib/Geo/Coder/Multiple/Multimap.pm
 lib/Geo/Coder/Multiple/Yahoo.pm
-lib/Geo/Coder/Multiple/Weighted.pm
+lib/Geo/Coder/Multiple/Response.pm
 META.yml                                 Module meta-data (added by MakeMaker)

@@ -4,4 +4,5 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     'NAME'		=> 'Geo::Coder::Multiple',
     'VERSION_FROM'	=> 'lib/Geo/Coder/Multiple.pm', # finds $VERSION
+    PREREQ_PM           => { 'List::Util::WeightedRoundRobin' => 1 },
 );

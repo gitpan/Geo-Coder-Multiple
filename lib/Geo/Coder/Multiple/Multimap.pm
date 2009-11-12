@@ -3,20 +3,7 @@ package Geo::Coder::Multiple::Multimap;
 use strict;
 use warnings;
 
-
-sub new {
-    my $class = shift;
-    my $args = shift;
-
-    my $self = {
-        GeoCoder    => $args->{geocoder},
-        daily_limit => $args->{daily_limit},
-    };
-
-    bless $self, $class;
-
-    return( $self );
-};
+use base 'Geo::Coder::Multiple::Generic';
 
 
 sub geocode {
@@ -25,21 +12,18 @@ sub geocode {
 
     my $raw_reply = $self->{GeoCoder}->geocode( location => $location );
 
-    my $location_data = [
-        {
-            address     => $raw_reply->{address}->{display_name},
-            longitude   => $raw_reply->{point}->{lon},
-            latitude    => $raw_reply->{point}->{lat},
-            geocoder    => 'multimap',
-        },
-    ];
+    my $Response = Geo::Coder::Multiple::Response->new( { location => $location } );
 
-    return( $location_data );
+    my $tmp = {
+        address     => $raw_reply->{address}->{display_name},
+        longitude   => $raw_reply->{point}->{lon},
+        latitude    => $raw_reply->{point}->{lat},
+    };
+
+    $Response->add_response( $tmp, 'multimap' );
+
+    return( $Response );
 };
-
-
-sub get_daily_limit { return( $_[0]->{daily_limit} ) };
-sub get_name { return( $_[0]->{name} ) };
 
 
 
