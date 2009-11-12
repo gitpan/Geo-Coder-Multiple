@@ -1,6 +1,6 @@
 package Geo::Coder::Multiple;
 
-$VERSION = 0.3;
+$VERSION = 0.4;
 
 use strict;
 use warnings;
@@ -218,21 +218,21 @@ __END__
 
 =head1 NAME
 
-Geo::Coder::Multi - Module to tie together multiple Geo::Coder::* modules
+Geo::Coder::Multiple - Module to tie together multiple Geo::Coder::* modules
 
 =head1 SYNOPSIS
 
   # for Geo::Coder::Jingle and Geo::Coder::Bells
   use Geo::Coder::Jingle;
   use Geo::Coder::Bells;
-  use Geo::Coder::Multi;
+  use Geo::Coder::Multiple;
   
   my $options = {
     stats_cache         => $stats_cache,
     results_cache       => $results_cache,
   };
 
-  my $geocoder_multi = Geo::Coder::Multi->new( $options );
+  my $geocoder_multi = Geo::Coder::Multiple->new( $options );
 
   my $jingle = Geo::Coder::Jingle->new( apikey => 'Jingle API Key' );
 
@@ -260,7 +260,7 @@ Geo::Coder::Multi - Module to tie together multiple Geo::Coder::* modules
 
 =head1 DESCRIPTION
 
-Geo::Coder::Multi is a wrapper for multiple Geo::Coder::* modules.
+Geo::Coder::Multiple is a wrapper for multiple Geo::Coder::* modules.
 
 Most free geocoding datasource specify a limit to the number of queries which
 can be sent from an IP or made using an API key in a 24 hour period. This 
@@ -270,7 +270,7 @@ individual limits are exceeded only when the total limit is exceeded.
 The algorithm for load balancing takes into account the limit imposed by the 
 source per 24 hour period. 
 
-Any network or source outages are handled by C<Geo::Coder::Multi>.
+Any network or source outages are handled by C<Geo::Coder::Multiple>.
 
 =head1 METHOD
 
@@ -278,7 +278,7 @@ Any network or source outages are handled by C<Geo::Coder::Multi>.
 
 =head2 new   
 
-Constructs a new C<Geo::Coder::Multi> object and returns it. If no options are
+Constructs a new C<Geo::Coder::Multiple> object and returns it. If no options are
 specified, caching for the geocoder source statistics will be done in memory
 for the life of the object and no caching will be done for the geocoding
 results.
