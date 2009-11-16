@@ -1,6 +1,6 @@
 package Geo::Coder::Multiple;
 
-$VERSION = 0.4;
+$VERSION = 0.5;
 
 use strict;
 use warnings;
@@ -19,7 +19,6 @@ sub new {
 
     my $self = {
         cache           => undef,
-        cache_enabled   => 0,
         geocoders       => {},
         weighted_list   => [],
     };
@@ -60,7 +59,7 @@ sub geocode {
     my $self = shift;
     my $args = shift;
 
-    my $Response = $self->_get_cache( $args->{location} );
+    my $Response = $self->_get_from_cache( $args->{location} );
 
     if( defined($Response) ) {
         return( $Response );
@@ -78,13 +77,10 @@ sub geocode {
         $geocoders_count--;
     };
 
-    $self->_set_cache( $args->{location}, $Response );
+    $self->_set_in_cache( $args->{location}, $Response, $args->{cache} );
 
     return( $Response );
 };
-
-
-sub is_cache_enabled { return( $_[0]->{cache_enabled} ) };
 
 
 sub _get_geocoders { 
@@ -127,8 +123,11 @@ sub _recalculate_geocoder_stats {
     };
 
     my $WeightedList = List::Util::WeightedRoundRobin->new();
-    $WeightedList->initialize_sources( $slim_geocoders );
-    $self->{weighted_list} = $WeightedList->get_list();
+    $self->{weighted_list} = $WeightedList->create_weighted_list( $slim_geocoders );
+
+    unless( @{$self->{weighted_list}} ) {
+        die "Unable to create weighted list from list of geocoders";
+    };
 
     return;
 };
@@ -181,13 +180,14 @@ sub _test_cache_object {
 
 
 # Store the result in the cache
-sub _set_cache {
+sub _set_in_cache {
     my $self = shift;
     my $location = shift;
     my $Response = shift;
+    my $cache = shift || $self->{cache};
 
-    if( $self->is_cache_enabled() ) {
-        $self->{cache}->set( $location, $Response );
+    if( $cache ) {
+        $cache->set( $location, $Response );
         return( 1 );
     };
 
@@ -196,12 +196,13 @@ sub _set_cache {
 
 
 # Check the cache to see if the data is available
-sub _get_cache {
+sub _get_from_cache {
     my $self = shift;
     my $location = shift;
+    my $cache = shift || $self->{cache};
 
-    if( $self->is_cache_enabled() ) {
-        my $Response = $self->{cache}->get( $location );
+    if( $cache ) {
+        my $Response = $cache->get( $location );
         if( $Response ) {
             $Response->{response_code} = 210;
             return( $Response );
@@ -228,8 +229,7 @@ Geo::Coder::Multiple - Module to tie together multiple Geo::Coder::* modules
   use Geo::Coder::Multiple;
   
   my $options = {
-    stats_cache         => $stats_cache,
-    results_cache       => $results_cache,
+    cache   => $cache_object,
   };
 
   my $geocoder_multi = Geo::Coder::Multiple->new( $options );
@@ -278,15 +278,12 @@ Any network or source outages are handled by C<Geo::Coder::Multiple>.
 
 =head2 new   
 
-Constructs a new C<Geo::Coder::Multiple> object and returns it. If no options are
-specified, caching for the geocoder source statistics will be done in memory
-for the life of the object and no caching will be done for the geocoding
-results.
+Constructs a new C<Geo::Coder::Multiple> object and returns it. If no options 
+are specified, no caching will be done for the geocoding results.
 
   KEY                   VALUE
   -----------           --------------------
-  stats_cache           cache object reference  (optional)
-  results_cache         cache object reference  (optional)
+  cache                 cache object reference  (optional)
 
 
 =head2 add_geocoder
@@ -402,7 +399,7 @@ Currently supported Geo::Coder::* modules are:
 
 =head1 AUTHOR
 
-Alistair Francis, E<lt>alistair.francis@lokku.comE<gt>
+Alistair Francis, http://search.cpan.org/~friffin/
 
 =head1 COPYRIGHT AND LICENSE
 
