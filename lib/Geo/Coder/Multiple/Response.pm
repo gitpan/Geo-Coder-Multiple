@@ -10,7 +10,7 @@ sub new {
 
     my $self = {
         location        => $args->{location},
-        results         => [],
+        responses       => [],
         response_code   => 401,
         geocoder        => undef,
     };

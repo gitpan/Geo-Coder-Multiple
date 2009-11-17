@@ -1,6 +1,6 @@
 package Geo::Coder::Multiple;
 
-$VERSION = 0.51;
+$VERSION = 0.52;
 
 use strict;
 use warnings;
@@ -25,7 +25,9 @@ sub new {
 
     bless $self, $class;
 
-    $self->_set_caching_object( $args->{cache} );
+    if( $args->{cache} ) {
+        $self->_set_caching_object( $args->{cache} );
+    };
 
     return( $self );
 };
