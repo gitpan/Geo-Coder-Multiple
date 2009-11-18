@@ -1,6 +1,6 @@
 package Geo::Coder::Multiple;
 
-$VERSION = 0.52;
+$VERSION = 0.53;
 
 use strict;
 use warnings;
