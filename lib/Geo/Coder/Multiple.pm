@@ -1,6 +1,6 @@
 package Geo::Coder::Multiple;
 
-$VERSION = 0.54;
+$VERSION = 0.55;
 
 use strict;
 use warnings;
@@ -73,7 +73,7 @@ sub geocode {
     while( (!defined($Response) || $Response->get_response_code != 200) && ($geocoders_count > 0) ) {
         my $geocoder = $self->_get_next_geocoder();
         next if( ref($geocoder) eq ref($previous_geocoder) );
-        next if( grep $geocoder->get_name(), @{$args->{geocoders_to_skip}} );
+        next if( grep /^$geocoder->get_name()$/, @{$args->{geocoders_to_skip}} );
         $Response = $geocoder->geocode( $args->{location} );
         $previous_geocoder = $geocoder;
         $geocoders_count--;

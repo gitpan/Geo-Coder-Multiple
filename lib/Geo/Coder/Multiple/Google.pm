@@ -29,6 +29,9 @@ sub geocode {
 };
 
 
+sub get_name { return 'google' };
+
+
 1;
 
 __END__

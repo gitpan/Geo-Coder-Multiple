@@ -31,6 +31,8 @@ sub geocode {
 };
 
 
+sub get_name { return 'yahoo' };
+
 
 1;
 

@@ -22,7 +22,7 @@ sub new {
 
 sub geocode { die "This method must be over-ridden" };
 sub get_daily_limit { return( $_[0]->{daily_limit} ) };
-sub get_name { return( $_[0]->{name} ) };
+sub get_name { die "This method must be over-ridden" };
 
 
 

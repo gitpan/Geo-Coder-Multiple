@@ -29,6 +29,9 @@ sub geocode {
 };
 
 
+sub get_name { return 'bing' };
+
+
 1;
 
 __END__

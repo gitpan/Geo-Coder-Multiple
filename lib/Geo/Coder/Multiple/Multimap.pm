@@ -26,6 +26,8 @@ sub geocode {
 };
 
 
+sub get_name { return 'multimap' };
+
 
 1;
 
