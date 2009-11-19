@@ -1,6 +1,6 @@
 package Geo::Coder::Multiple;
 
-$VERSION = 0.53;
+$VERSION = 0.54;
 
 use strict;
 use warnings;
@@ -61,25 +61,27 @@ sub geocode {
     my $self = shift;
     my $args = shift;
 
-    my $Response = $self->_get_from_cache( $args->{location} );
-
-    if( defined($Response) ) {
-        return( $Response );
+    unless( $args->{no_cache} ) {
+        my $Response = $self->_get_from_cache( $args->{location}, $args->{cache} );
+        if( defined($Response) ) { return( $Response ) };
     };
 
     my $geocoders_count = @{$self->_get_geocoders()};
+    my $Response;
     my $previous_geocoder;
 
     while( (!defined($Response) || $Response->get_response_code != 200) && ($geocoders_count > 0) ) {
         my $geocoder = $self->_get_next_geocoder();
-        next if( defined($previous_geocoder)
-            && ref($geocoder) eq ref($previous_geocoder) );
+        next if( ref($geocoder) eq ref($previous_geocoder) );
+        next if( grep $geocoder->get_name(), @{$args->{geocoders_to_skip}} );
         $Response = $geocoder->geocode( $args->{location} );
         $previous_geocoder = $geocoder;
         $geocoders_count--;
     };
 
-    $self->_set_in_cache( $args->{location}, $Response, $args->{cache} );
+    unless( $args->{no_cache} ) {
+        $self->_set_in_cache( $args->{location}, $Response, $args->{cache} );
+    };
 
     return( $Response );
 };
@@ -331,7 +333,7 @@ The arguments to the C<geocode> method are:
   -----------           --------------------
   location              location string to pass to geocoder
   results_cache         reference to a cache object, will over-ride the default
-  no_cache              if set, the result will not be cached (off by default)
+  no_cache              if set, the result will not be retrieved or set in cache (off by default)
 
 This method is the basis for the class, it will retrieve result from cache
 first, and return if cache hit.
