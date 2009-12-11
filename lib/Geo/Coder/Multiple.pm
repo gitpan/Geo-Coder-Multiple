@@ -1,6 +1,6 @@
 package Geo::Coder::Multiple;
 
-$VERSION = 0.57;
+$VERSION = 0.58;
 
 use strict;
 use warnings;
@@ -246,9 +246,9 @@ Geo::Coder::Multiple - Module to tie together multiple Geo::Coder::* modules
     daily_limit => 25000,
   };
 
-  my $geocoder_multi->add_geocoder( $geocoder_options );
+  my $geocoder_multi->add_geocoder( $jingle_options );
 
-  my $bells = Geo::Coder::Jingle->new( apikey => 'Bells API Key' );
+  my $bells = Geo::Coder::Bells->new( apikey => 'Bells API Key' );
 
   my $bells_options = {
     geocoder    => $bells,
