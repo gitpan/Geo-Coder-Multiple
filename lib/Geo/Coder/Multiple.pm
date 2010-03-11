@@ -1,6 +1,6 @@
 package Geo::Coder::Multiple;
 
-$VERSION = 0.58;
+$VERSION = 0.59;
 
 use strict;
 use warnings;
@@ -80,7 +80,7 @@ sub geocode {
         $previous_geocoder_name = $geocoder_name;
     };
 
-    unless( $args->{no_cache} ) {
+    unless( $args->{no_cache} && (!defined($Response) || $Response->get_response_code != 200) ) {
         $self->_set_in_cache( $args->{location}, $Response, $args->{cache} );
     };
 
