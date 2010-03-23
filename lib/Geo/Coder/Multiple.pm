@@ -1,6 +1,6 @@
 package Geo::Coder::Multiple;
 
-$VERSION = 0.59;
+$VERSION = 0.60;
 
 use strict;
 use warnings;
@@ -18,9 +18,10 @@ sub new {
     my $args = shift;
 
     my $self = {
-        cache           => undef,
-        geocoders       => {},
-        weighted_list   => [],
+        cache               => undef,
+        geocoders           => {},
+        weighted_list       => [],
+        normalize_code_ref  => $args->{normalize_code_ref},
     };
 
     bless $self, $class;
@@ -191,8 +192,11 @@ sub _set_in_cache {
     my $Response = shift;
     my $cache = shift || $self->{cache};
 
+    my $normalized_location = $self->_normalize_location_string( $location );
+    my $location_key = $normalized_location || $location;
+
     if( $cache ) {
-        $cache->set( $location, $Response );
+        $cache->set( $location_key, $Response );
         return( 1 );
     };
 
@@ -207,7 +211,10 @@ sub _get_from_cache {
     my $cache = shift || $self->{cache};
 
     if( $cache ) {
-        my $Response = $cache->get( $location );
+        my $normalized_location = $self->_normalize_location_string($location);
+        my $location_key = $normalized_location || $location;
+
+        my $Response = $cache->get( $location_key );
         if( $Response ) {
             $Response->{response_code} = 210;
             return( $Response );
@@ -215,6 +222,21 @@ sub _get_from_cache {
     };
 
     return;
+};
+
+
+sub _normalize_location_string {
+    my $self = shift;
+    my $location = shift;
+
+    if( $self->{normalize_code_ref} ) {
+        my $code_ref = $self->{normalize_code_ref};
+        my $normalized_location = &$code_ref( $location ); 
+
+        return $normalized_location;
+    };
+
+    return $location;
 };
 
 
@@ -286,9 +308,14 @@ Any network or source outages are handled by C<Geo::Coder::Multiple>.
 Constructs a new C<Geo::Coder::Multiple> object and returns it. If no options 
 are specified, no caching will be done for the geocoding results.
 
+The 'normalize_code_ref' is a code reference which is used to normalize
+location strings to ensure that all cache keys are normalized for correct
+lookup.
+
   KEY                   VALUE
   -----------           --------------------
   cache                 cache object reference  (optional)
+  normalize_code_ref    A normalization code ref (optional)
 
 
 =head2 add_geocoder
