@@ -13,6 +13,7 @@ sub geocode {
     my $raw_reply = $self->{GeoCoder}->geocode( location => $location );
 
     my $Response = Geo::Coder::Multiple::Response->new( { location => $location } );
+    $Response->set_geocoder( $self->get_name() );
 
     my $tmp = {
         address     => $raw_reply->{address}->{display_name},
@@ -20,7 +21,7 @@ sub geocode {
         latitude    => $raw_reply->{point}->{lat},
     };
 
-    $Response->add_response( $tmp, 'multimap' );
+    $Response->add_response( $tmp );
 
     return( $Response );
 };

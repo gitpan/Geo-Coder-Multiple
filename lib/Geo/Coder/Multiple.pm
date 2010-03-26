@@ -1,6 +1,6 @@
 package Geo::Coder::Multiple;
 
-$VERSION = 0.60;
+$VERSION = 0.61;
 
 use strict;
 use warnings;
@@ -165,7 +165,7 @@ sub _set_caching_object {
 };
 
 
-# Test the cache to ensure it has 'get', 'set' and 'remove' methods
+# Test the cache to ensure it has 'get' and 'set' methods
 #
 sub _test_cache_object {
     my $self = shift;
@@ -393,11 +393,11 @@ are:
   210   Success (from cache)
   401   Unable to find location
   402   All geocoder limits reached (not yet implemented)
-
+  403   Unspecified failure
 
 =head1 NOTES
 
-All cache objects used must support 'get', 'set' and 'remove' methods.
+All cache objects used must support 'get' and 'set' methods.
 
 The input (location) string is expected to be in utf-8. Incorrectly encoded
 strings will make for unreliable geocoding results. All strings returned will

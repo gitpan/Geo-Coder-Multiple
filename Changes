@@ -9,3 +9,7 @@ Revision history for Perl module Geo::Coder::Multiple.
 0.60    2010.03.23
         - Enhancement to allow for normalizing code refs to normalize locations
           when used as cache keys
+
+0.61    2010.03.25
+        - Now the response code from geocoder is returned (requires updates of
+          geocoder libs).

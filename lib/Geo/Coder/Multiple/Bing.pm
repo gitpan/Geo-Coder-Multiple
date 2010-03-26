@@ -13,6 +13,7 @@ sub geocode {
     my $raw_reply = $self->{GeoCoder}->geocode( location => $location );
 
     my $Response = Geo::Coder::Multiple::Response->new( { location => $location } );
+    $Response->set_geocoder( $self->get_name() );
 
     foreach my $option ( @{$raw_reply->{Locations}} ) {
         my $tmp = {
@@ -22,7 +23,7 @@ sub geocode {
             latitude    => $option->{Coordinates}->{Latitude},
         };
 
-        $Response->add_response( $tmp, 'bing' );
+        $Response->add_response( $tmp );
     };
 
     return( $Response );

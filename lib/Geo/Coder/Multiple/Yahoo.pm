@@ -6,26 +6,40 @@ use warnings;
 use base 'Geo::Coder::Multiple::Generic';
 
 
+my $STATUS_LOOKUP = {
+    200     => 200,
+    400     => 403,
+    403     => 402,
+    503     => 403,
+};
+
+
 sub geocode {
     my $self = shift;
     my $location = shift;
 
-    my $raw_replies = $self->{GeoCoder}->geocode( location => $location );
+    my $raw_reply = $self->{GeoCoder}->geocode( location => $location );
 
     my $Response = Geo::Coder::Multiple::Response->new( { location => $location } );
+    $Response->set_status( $STATUS_LOOKUP->{$raw_reply->{http_code}} );
+    $Response->set_geocoder( $self->get_name() );
 
     my $location_data = [];
 
-    foreach my $raw_reply ( @{$raw_replies} ) {
+    my $total_responses = 0;
+    foreach my $result ( @{$raw_reply->{results}} ) {
         my $tmp = {
-            address     => $raw_reply->{address},
-            country     => $raw_reply->{country},
-            longitude   => $raw_reply->{longitude},
-            latitude    => $raw_reply->{latitude},
+            address     => $result->{address},
+            country     => $result->{country},
+            longitude   => $result->{longitude},
+            latitude    => $result->{latitude},
         };
 
-        $Response->add_response( $tmp, 'yahoo' );
+        $Response->add_response( $tmp );
+        $total_responses++;
     };
+
+    unless( $total_responses ) { $Response->set_status( 401 ) };
 
     return( $Response );
 };
